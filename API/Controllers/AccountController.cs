@@ -12,26 +12,27 @@ namespace API.Controllers;
 public class AccountController(DataContext context, ITokenService tokenService) : BaseAPIController
 {
     [HttpPost("register")]
-    public async Task<ActionResult<UserDTO>> Register(RegisterDTO registerDTO)
+    public async Task<ActionResult<UserDTO>> Register([FromBody] RegisterDTO registerDTO)
     {   
-        if (await UserExists(registerDTO.Username)) 
-            return BadRequest("Username already taken!");
+        return Ok();
+        // if (await UserExists(registerDTO.Username)) 
+        //     return BadRequest("Username already taken!");
 
-        using var hmac = new HMACSHA512();
+        // using var hmac = new HMACSHA512();
 
-        var user = new AppUser{
-            UserName = registerDTO.Username,
-            PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
-            PasswordSalt = hmac.Key
-        };
+        // var user = new AppUser{
+        //     UserName = registerDTO.Username,
+        //     PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
+        //     PasswordSalt = hmac.Key
+        // };
 
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
+        // context.Users.Add(user);
+        // await context.SaveChangesAsync();
 
-        return new UserDTO{
-            Username = user.UserName,
-            Token = tokenService.CreateToken(user)
-        };
+        // return new UserDTO{
+        //     Username = user.UserName,
+        //     Token = tokenService.CreateToken(user)
+        // };
     }
     [HttpPost("login")]
     public async Task<ActionResult<UserDTO>> Login (LoginDTO loginDTO){
