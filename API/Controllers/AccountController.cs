@@ -13,7 +13,7 @@ public class AccountController(DataContext context, ITokenService tokenService) 
 {
     [HttpPost("register")]
     public async Task<ActionResult<UserDTO>> Register([FromBody] RegisterDTO registerDTO)
-    {   
+    {
         return Ok();
         // if (await UserExists(registerDTO.Username)) 
         //     return BadRequest("Username already taken!");
@@ -35,8 +35,9 @@ public class AccountController(DataContext context, ITokenService tokenService) 
         // };
     }
     [HttpPost("login")]
-    public async Task<ActionResult<UserDTO>> Login (LoginDTO loginDTO){
-        var user = await context.Users.FirstOrDefaultAsync
+    public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDTO)
+    {
+        var user = await context.Users.Include(x => x.Photos).FirstOrDefaultAsync
             (x => x.UserName.ToLower() == loginDTO.Username.ToLower());
 
         if (user == null) return Unauthorized("Invalid username");
@@ -46,16 +47,19 @@ public class AccountController(DataContext context, ITokenService tokenService) 
 
         for (int i = 0; i < computedHash.Length; i++)
         {
-            if (computedHash[i] != user.PasswordHash[i]) 
+            if (computedHash[i] != user.PasswordHash[i])
                 return Unauthorized("Invalid password");
         }
 
-        return new UserDTO{
+        return new UserDTO
+        {
             Username = user.UserName,
-            Token = tokenService.CreateToken(user)
+            Token = tokenService.CreateToken(user),
+            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
         };
     }
-    private async Task<bool> UserExists(string userName){
+    private async Task<bool> UserExists(string userName)
+    {
         return await context.Users.AnyAsync
             (x => x.UserName.ToLower() == userName.ToLower());
     }

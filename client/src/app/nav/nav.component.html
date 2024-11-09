@@ -21,6 +21,7 @@
 
         @if (user()) {
         <div dropdown class="dropdown">
+            <img class="me-2" [src]="user()?.photoUrl || 'user.png' " alt="user main image">
             <a dropdownToggle class="dropdown-toggle text-light text-decoration-none">Welcome, 
                 {{user()?.username | titlecase}}</a>
             <div *dropdownMenu class="dropdown-menu">
