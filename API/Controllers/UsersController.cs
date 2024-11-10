@@ -67,6 +67,8 @@ public class UsersController(IUserRepository repo, IMapper mapper, IPhotoService
             PublicId = result.PublicId
         };
 
+        if (!user.Photos.Any(x => x.IsMain)) photo.IsMain = true;
+
         user.Photos.Add(photo);
 
         if (await repo.SaveAllAsync())

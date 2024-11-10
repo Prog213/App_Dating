@@ -7,6 +7,7 @@ import { environment } from '../../../environments/environment';
 // import { Photo } from '../../models/photo';
 import { MemberService } from '../../services/member.service';
 import { Photo } from '../../models/photo.model';
+import { User } from '../../models/user.model';
 
 @Component({
   selector: 'app-photo-editor',
@@ -36,21 +37,25 @@ export class PhotoEditorComponent implements OnInit {
     this.memberService.setMainPhoto(photo).subscribe(
       {
         next: _ => {
-          const user = this.accountService.currentUser();
-          if (user) {
-            user.photoUrl = photo.url;
-            this.accountService.setCurrentUser(user);
-          }
-          const updatedMember = { ...this.member() };
-          updatedMember.photoUrl = photo.url;
-          updatedMember.photos.forEach(p => {
-            if (p.isMain) p.isMain = false;
-            if (p.id === photo.id) p.isMain = true;
-          });
-          this.memberChange.emit(updatedMember);
+          this.setMainPhoto(photo);
         }
       }
     )
+  }
+
+  private setMainPhoto(photo: Photo) {
+    const user = this.accountService.currentUser();
+    if (user) {
+      user.photoUrl = photo.url;
+      this.accountService.setCurrentUser(user);
+    }
+    const updatedMember = { ...this.member() };
+    updatedMember.photoUrl = photo.url;
+    updatedMember.photos.forEach(p => {
+      if (p.isMain) p.isMain = false;
+      if (p.id === photo.id) p.isMain = true;
+    });
+    this.memberChange.emit(updatedMember);
   }
 
   deletePhoto(photo: Photo){
@@ -85,6 +90,7 @@ export class PhotoEditorComponent implements OnInit {
       const updatedMember = { ...this.member() };
       updatedMember.photos.push(photo);
       this.memberChange.emit(updatedMember);
+      this.setMainPhoto(photo);
     };
   }
 }

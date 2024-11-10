@@ -4,35 +4,36 @@ using API.Data;
 using API.DTOs;
 using API.Entities;
 using API.Intefcafes;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers;
 
-public class AccountController(DataContext context, ITokenService tokenService) : BaseAPIController
+public class AccountController(DataContext context, ITokenService tokenService, 
+    IMapper mapper) : BaseAPIController
 {
     [HttpPost("register")]
     public async Task<ActionResult<UserDTO>> Register([FromBody] RegisterDTO registerDTO)
     {
-        return Ok();
-        // if (await UserExists(registerDTO.Username)) 
-        //     return BadRequest("Username already taken!");
+        if (await UserExists(registerDTO.Username))
+            return BadRequest("Username already taken!");
 
-        // using var hmac = new HMACSHA512();
+        using var hmac = new HMACSHA512();
 
-        // var user = new AppUser{
-        //     UserName = registerDTO.Username,
-        //     PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password)),
-        //     PasswordSalt = hmac.Key
-        // };
+        var user = mapper.Map<AppUser>(registerDTO);
+        
+        user.UserName = registerDTO.Username.ToLower();
+        user.PasswordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(registerDTO.Password));
+        user.PasswordSalt = hmac.Key;
 
-        // context.Users.Add(user);
-        // await context.SaveChangesAsync();
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
 
-        // return new UserDTO{
-        //     Username = user.UserName,
-        //     Token = tokenService.CreateToken(user)
-        // };
+        var userDTO = mapper.Map<UserDTO>(user);
+        userDTO.Token = tokenService.CreateToken(user);
+
+        return userDTO;
     }
     [HttpPost("login")]
     public async Task<ActionResult<UserDTO>> Login(LoginDTO loginDTO)
@@ -51,12 +52,10 @@ public class AccountController(DataContext context, ITokenService tokenService) 
                 return Unauthorized("Invalid password");
         }
 
-        return new UserDTO
-        {
-            Username = user.UserName,
-            Token = tokenService.CreateToken(user),
-            PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url
-        };
+        var userDTO = mapper.Map<UserDTO>(user);
+        userDTO.Token = tokenService.CreateToken(user);
+
+        return userDTO;
     }
     private async Task<bool> UserExists(string userName)
     {
