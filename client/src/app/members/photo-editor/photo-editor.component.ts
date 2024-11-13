@@ -90,7 +90,8 @@ export class PhotoEditorComponent implements OnInit {
       const updatedMember = { ...this.member() };
       updatedMember.photos.push(photo);
       this.memberChange.emit(updatedMember);
-      this.setMainPhoto(photo);
+      if (photo.isMain)
+        this.setMainPhoto(photo);
     };
   }
 }

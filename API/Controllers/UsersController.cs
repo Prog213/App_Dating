@@ -2,6 +2,7 @@ using System.Security.Claims;
 using API.DTOs;
 using API.Entities;
 using API.Extensions;
+using API.Helpers;
 using API.Interfaces;
 using API.Services;
 using AutoMapper;
@@ -16,9 +17,12 @@ public class UsersController(IUserRepository repo, IMapper mapper, IPhotoService
     : BaseAPIController
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<MemberDTO>>> GetUsers()
+    public async Task<ActionResult<IReadOnlyList<MemberDTO>>> GetUsers([FromQuery]UserParams userParams)
     {
-        var users = await repo.GetMembersAsync();
+        userParams.CurrentUsername = User.GetUsername();
+        var users = await repo.GetMembersAsync(userParams);
+
+        Response.AddPaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
 
         return Ok(users);
     }
