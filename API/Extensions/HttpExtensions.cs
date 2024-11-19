@@ -5,9 +5,10 @@ namespace API.Extensions;
 
 public static class HttpExtensions
 {
-    public static void AddPaginationHeader(this HttpResponse response, int currentPage, int itemsPerPage, int totalItems, int totalPages)
+    public static void AddPaginationHeader<T>(this HttpResponse response, PagedList<T> data)
     {
-        var paginationHeader = new PaginationHeader(currentPage, itemsPerPage, totalItems, totalPages);
+        var paginationHeader = new PaginationHeader(data.CurrentPage, data.PageSize, 
+            data.TotalCount, data.TotalPages);
         var options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase

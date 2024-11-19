@@ -22,7 +22,7 @@ public class UsersController(IUserRepository repo, IMapper mapper, IPhotoService
         userParams.CurrentUsername = User.GetUsername();
         var users = await repo.GetMembersAsync(userParams);
 
-        Response.AddPaginationHeader(users.CurrentPage, users.PageSize, users.TotalCount, users.TotalPages);
+        Response.AddPaginationHeader(users);
 
         return Ok(users);
     }

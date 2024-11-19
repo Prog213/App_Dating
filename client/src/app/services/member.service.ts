@@ -12,6 +12,7 @@ import { Photo } from '../models/photo.model';
 import { PaginatedResult } from '../models/pagination.model';
 import { UserParams } from '../models/userParams.model';
 import { AccountService } from './account.service';
+import { createHttpParams, setPaginatedResult } from './pagination.helper';
 
 @Injectable({
   providedIn: 'root',
@@ -30,10 +31,10 @@ export class MemberService {
     );
 
     if (response) {
-      return this.setPaginatedResult(response);
+      return setPaginatedResult(response, this.paginatedResult);
     }
 
-    let params = this.createHttpParams(
+    let params = createHttpParams(
       this.userParams().pageNumber,
       this.userParams().pageSize
     );
@@ -46,26 +47,9 @@ export class MemberService {
     return this.http
       .get<Member[]>(this.baseUrl + 'users', { observe: 'response', params })
       .subscribe((response) => {
-        this.setPaginatedResult(response);
+        setPaginatedResult(response, this.paginatedResult);
         this.cashedMembers.set(Object.values(this.userParams()).join('-'), response);
       });
-  }
-
-  private setPaginatedResult(response: HttpResponse<Member[]>) {
-    this.paginatedResult.set({
-      items: response.body as Member[],
-      pagination: JSON.parse(response.headers.get('Pagination')!),
-    });
-  }
-
-  private createHttpParams(page?: number, itemsPerPage?: number) {
-    let params = new HttpParams();
-
-    if (page && itemsPerPage) {
-      params = params.append('pageNumber', page);
-      params = params.append('pageSize', itemsPerPage);
-    }
-    return params;
   }
 
   getMember(username: string) {
